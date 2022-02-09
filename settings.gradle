@@ -1,0 +1,3 @@
+rootProject.name = "NdkCmake"
+include ':app'
+include ':ndk_source'
