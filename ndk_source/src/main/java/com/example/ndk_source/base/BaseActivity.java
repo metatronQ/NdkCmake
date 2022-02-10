@@ -1,29 +1,27 @@
 package com.example.ndk_source.base;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.example.ndk_source.callback.Callback;
 import com.example.ndk_source.util.GlobalAppContext;
@@ -68,10 +66,9 @@ abstract public class BaseActivity extends AppCompatActivity {
 
     /**
      * 根据Uri获取图片绝对路径，解决Android4.4以上版本Uri转换
+     *
      * @param context
      * @param imageUri
-     * @author yaoxing
-     * @date 2014-10-12
      */
     @TargetApi(19)
     public static String getImageAbsolutePath(Activity context, Uri imageUri) {
@@ -102,7 +99,7 @@ abstract public class BaseActivity extends AppCompatActivity {
                     contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 }
                 String selection = MediaStore.Images.Media._ID + "=?";
-                String[] selectionArgs = new String[] { split[1] };
+                String[] selectionArgs = new String[]{split[1]};
                 return getDataColumn(context, contentUri, selection, selectionArgs);
             }
         } // MediaStore (and general)
@@ -122,7 +119,7 @@ abstract public class BaseActivity extends AppCompatActivity {
     public static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
         Cursor cursor = null;
         String column = MediaStore.Images.Media.DATA;
-        String[] projection = { column };
+        String[] projection = {column};
         try {
             cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs, null);
             if (cursor != null && cursor.moveToFirst()) {
@@ -175,11 +172,29 @@ abstract public class BaseActivity extends AppCompatActivity {
         GlobalAppContext.getInstance(this);
         // 隐藏标题栏（toolbar） vs requestWindowFeature
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        hideStateBar();
     }
 
     // saf请求
-     public void launch(Callback callback) {
+    public void launch(Callback callback) {
         this.callback = callback;
         launcher.launch(true);
-     }
+    }
+
+    /**
+     * 隐藏状态栏，不同SDK版本不同方法
+     */
+    protected void hideStateBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            final WindowInsetsController insetsController = getWindow().getInsetsController();
+            if (insetsController != null) {
+                insetsController.hide(WindowInsets.Type.statusBars());
+            }
+        } else {
+            getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN
+            );
+        }
+    }
 }
