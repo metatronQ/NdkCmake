@@ -50,6 +50,22 @@ android {
 //            jniLibs.srcDirs=['jniLibs']
 //        }
 //    }
+
+    lintOptions {
+        // 关闭log tag过长检查
+        disable 'LongLogTag'
+    }
+
+    task nativeLibsToJar(type: Jar, description: 'create a jar archive of the native libs') {
+        destinationDir file("$buildDir/libs")
+        baseName 'native-libs'
+        from fileTree(dir: 'libs', include: '**/*')
+        into 'lib'
+    }
+
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn(nativeLibsToJar)
+    }
 }
 
 dependencies {
@@ -63,7 +79,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     api 'androidx.multidex:multidex:2.0.0'
+
+    implementation fileTree(dir: "$buildDir/libs", include: 'native-libs.jar')
 }
+
 repositories {
     mavenCentral()
 }
