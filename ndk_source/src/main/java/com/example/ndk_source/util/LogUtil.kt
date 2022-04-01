@@ -22,8 +22,9 @@ object LogUtil {
     /**
      * 手动指定包名，一般不调用，除非context难以获取
      */
-    fun manualPkgName(name: String) {
+    fun manualPkgName(name: String): LogUtil {
         BASE_CLASS_PATH = name
+        return this
     }
 
     fun v(msg: String){
