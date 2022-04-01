@@ -1,3 +1,6 @@
 rootProject.name = "NdkCmake"
 include ':app'
 include ':ndk_source'
+include ':FFmpageAndroid'
+
+project(':FFmpageAndroid').projectDir = new File('../ffmpeg-android-java/FFmpegAndroid')

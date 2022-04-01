@@ -51,4 +51,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     implementation project(":ndk_source")
+    implementation project(path: ':FFmpageAndroid')
 }

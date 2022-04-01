@@ -4,10 +4,12 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.3'
-
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -22,6 +24,16 @@ allprojects {
         jcenter() // Warning: this repository is going to shut down soon
     }
 }
+
+ext {
+    compileSdkVersion = 31
+    buildToolsVersion = '22.0.1'
+    targetSdkVersion = 31
+    minSdkVersion = 16
+    versionCode = 28
+    versionName = "0.3.2"
+}
+
 
 task clean(type: Delete) {
     delete rootProject.buildDir
