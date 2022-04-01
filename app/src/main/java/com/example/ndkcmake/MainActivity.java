@@ -2,12 +2,14 @@ package com.example.ndkcmake;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,11 +24,16 @@ import androidx.core.content.ContextCompat;
 
 import com.example.ndk_source.NativeProvider;
 import com.example.ndkcmake.databinding.ActivityMainBinding;
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
 
 import java.io.File;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final String TAG = MainActivity.class.getSimpleName();
 
+    private FFmpeg ffmpeg;
     private ActivityMainBinding binding;
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
     private static String[] PERMISSON_STORAGE = {Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -57,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     }, result -> {
         Toast.makeText(MainActivity.this, "" + result.toString(),Toast.LENGTH_SHORT).show();
     });
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +116,81 @@ public class MainActivity extends AppCompatActivity {
         binding.openFileTreeButton.setOnClickListener(view -> {
             launcher.launch(true);
         });
+        ffmpeg = FFmpeg.getInstance(getApplicationContext());
+        initUI();
+    }
 
+    private void initUI() {
+        binding.runCommand.setOnClickListener(this);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle(null);
+    }
+
+    private void execFFmpegBinary(final String[] command) {
+        try {
+            ffmpeg.execute(command, new ExecuteBinaryResponseHandler() {
+                @Override
+                public void onFailure(String s) {
+                    addTextViewToLayout("FAILED with output : " + s);
+                }
+
+                @Override
+                public void onSuccess(String s) {
+                    addTextViewToLayout("SUCCESS with output : " + s);
+                }
+
+                @Override
+                public void onProgress(String s) {
+                    Log.d(TAG, "Started command : ffmpeg " + command);
+                    addTextViewToLayout("progress : " + s);
+                    progressDialog.setMessage("Processing\n" + s);
+                }
+
+                @Override
+                public void onStart() {
+                    binding.commandOutput.removeAllViews();
+                    Log.d(TAG, "Started command : ffmpeg " + command);
+                    progressDialog.setMessage("Processing...");
+                    progressDialog.show();
+                }
+
+                @Override
+                public void onFinish() {
+                    Log.d(TAG, "Finished command : ffmpeg " + command);
+                    progressDialog.dismiss();
+                }
+            });
+        } catch (FFmpegCommandAlreadyRunningException e) {
+            // do nothing for now
+        }
+    }
+
+    private void addTextViewToLayout(String text) {
+        TextView textView = new TextView(MainActivity.this);
+        textView.setText(text);
+        binding.commandOutput.addView(textView);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.run_command:
+                if (verifyStoragePermissions(MainActivity.this) != 0) {
+                    return;
+                }
+//                String basedir = getApplicationInfo().nativeLibraryDir;
+//                String ffmpegCmd = basedir + File.separator + "ffmpeg";
+                String[] command = binding.command.getText().toString().split(" ");
+                if (command.length != 0) {
+                    execFFmpegBinary(command);
+                } else {
+                    Toast.makeText(MainActivity.this, "You cannot execute empty command", Toast.LENGTH_LONG).show();
+                }
+                break;
+            default:
+                break;
+        }
     }
 
 
@@ -137,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
             case REQUEST_EXTERNAL_STORAGE:
                 if (grantResults.length > 0) {
                     for (int grantResult : grantResults) {
-                        Log.d("2mp3_PermissionResults", "" + grantResult);
+                        Log.d("PermissionResults", "" + grantResult);
                     }
                 }
                 break;
