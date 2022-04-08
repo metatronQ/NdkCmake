@@ -57,6 +57,9 @@ abstract public class BaseActivity extends AppCompatActivity {
             return null;
         }
     }, result -> {
+        if (result == null) {
+            return;
+        }
         callback.setFilePath(result.toString());
     });
 
