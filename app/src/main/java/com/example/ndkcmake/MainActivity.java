@@ -181,7 +181,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 //                String basedir = getApplicationInfo().nativeLibraryDir;
 //                String ffmpegCmd = basedir + File.separator + "ffmpeg";
-                String[] command = binding.command.getText().toString().split(" ");
+                // 以双空格作为分隔符
+                String[] command = binding.command.getText().toString().split("  ");
                 if (command.length != 0) {
                     execFFmpegBinary(command);
                 } else {
